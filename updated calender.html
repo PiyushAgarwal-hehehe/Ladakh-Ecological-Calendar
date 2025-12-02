@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ladakh Valley Ecological Calendar – AI Helper</title>
+  <style>
+    :root {
+      --bg: #f2f7fb;
+      --paper: #ffffff;
+      --primary: #1b4965;
+      --primary-soft: #edf5ff;
+      --accent: #ff7f50;
+      --good: #4caf50;
+      --medium: #ffa000;
+      --bad: #e53935;
+      --muted: #607d8b;
+      --border-soft: rgba(15, 23, 42, 0.08);
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #cfe8ff 0, #f5f7fa 40%, #edf2f7 100%);
+      color: #102a43;
+    }
+
+    header {
+      padding: 1.2rem 2rem 0.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    header p {
+      margin: 0.4rem auto 0;
+      max-width: 760px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .year-label {
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+      color: #78909c;
+    }
+
+    .ai-tagline {
+      margin-top: 0.35rem;
+      font-size: 0.8rem;
+      color: #455a64;
+    }
+
+    .wrapper {
+      display: grid;
+      grid-template-columns: minmax(0, 3.3fr) minmax(280px, 1.6fr);
+      gap: 1.2rem;
+      padding: 0 2rem 2rem;
+    }
+
+    @media (max-width: 980px) {
+      .wrapper {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 1.5rem;
+      }
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      margin: 0.8rem 0 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 0.3rem 0.9rem;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.9);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease-out;
+    }
+
+    .filter-btn span.icon { font-size: 0.95rem; }
+
+    .filter-btn:hover {
+      box-shadow: 0 3px 6px rgba(15, 23, 42, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* Language switch */
+    .lang-switch {
+      display: flex;
+      justify-content: center;
+      gap: 0.3rem;
+      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .lang-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 0.25rem 0.8rem;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.9);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.15s ease-out;
+    }
+
+    .lang-btn:hover {
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .lang-btn.active {
+      background: #283593;
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* Calendar board */
+    .calendar-board {
+      position: relative;
+      padding-top: 1.2rem;
+    }
+
+    .hanger {
+      width: 90px;
+      height: 10px;
+      background: #cfd8dc;
+      border-radius: 999px;
+      margin: 0 auto;
+      box-shadow: 0 3px 7px rgba(0,0,0,0.16);
+      position: relative;
+      z-index: 1;
+    }
+
+    .board-paper {
+      margin-top: 0.6rem;
+      background: var(--paper);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      padding: 1.2rem 1.1rem 1.5rem;
+      position: relative;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .board-paper::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 18px;
+      right: 18px;
+      height: 14px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(
+        90deg,
+        #cfd8dc 0, #cfd8dc 10px,
+        #b0bec5 10px, #b0bec5 20px
+      );
+      opacity: 0.8;
+    }
+
+    /* Weather widget container */
+    .weather-box {
+      margin-bottom: 0.9rem;
+      border-radius: 14px;
+      padding: 0.4rem 0.5rem 0.2rem;
+      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      border: 1px solid rgba(25,118,210,0.25);
+    }
+
+    .months-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    @media (max-width: 960px) {
+      .months-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .months-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 480px) {
+      .months-grid { grid-template-columns: 1fr; }
+    }
+
+    .month-page {
+      background: linear-gradient(180deg, #ffffff 0, #f8fbff 60%, #ffffff 100%);
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.09);
+      padding: 0.6rem 0.65rem 0.7rem;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.14s ease-out, box-shadow 0.14s ease-out, border-color 0.14s ease-out;
+      overflow: hidden;
+    }
+
+    .month-page::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 16px;
+      border-radius: 14px 14px 0 0;
+      background: linear-gradient(90deg, #ff7f50, #ffb74d);
+      opacity: 0.96;
+    }
+
+    .month-page:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 5px 14px rgba(15, 23, 42, 0.18);
+      border-color: rgba(15, 23, 42, 0.18);
+    }
+
+    .month-header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 0.25rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .month-name {
+      font-weight: 700;
+      font-size: 0.96rem;
+      color: #102a43;
+    }
+
+    .season-tag {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,0.06);
+      background: rgba(255,255,255,0.9);
+    }
+
+    .icons-row {
+      display: flex;
+      justify-content: flex-start;
+      gap: 0.35rem;
+      font-size: 1.05rem;
+      margin: 0.2rem 0 0.3rem;
+    }
+
+    .icons-row span { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
+
+    .summary-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .summary-pill {
+      font-size: 0.7rem;
+      padding: 0.08rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255,255,255,0.95);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .summary-pill.good {
+      border-color: rgba(76,175,80,0.5);
+      background: rgba(76,175,80,0.06);
+    }
+    .summary-pill.medium {
+      border-color: rgba(255,160,0,0.5);
+      background: rgba(255,160,0,0.06);
+    }
+    .summary-pill.bad {
+      border-color: rgba(229,57,53,0.5);
+      background: rgba(229,57,53,0.06);
+    }
+
+    .short-lines {
+      font-size: 0.74rem;
+      line-height: 1.25;
+      margin-top: 0.05rem;
+    }
+
+    .short-lines div {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 0.12rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .label-pill {
+      padding: 0.02rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      font-size: 0.68rem;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .mini-rain-bar {
+      margin-top: 0.2rem;
+      font-size: 0.7rem;
+    }
+    .mini-rain-bar .bar {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.08);
+      overflow: hidden;
+      margin-top: 0.08rem;
+    }
+    .mini-rain-bar .fill {
+      height: 100%;
+      background: linear-gradient(90deg, #90caf9, #1565c0);
+    }
+
+    /* LEGEND BELOW CALENDAR */
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem 0.8rem;
+      padding: 0.5rem 0.6rem;
+      margin-top: 0.9rem;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e3f2fd, #fff3e0);
+      border: 1px solid rgba(25, 118, 210, 0.25);
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 720px) {
+      .legend { grid-template-columns: 1fr; }
+    }
+
+    .legend-title {
+      grid-column: 1 / -1;
+      font-weight: 600;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .legend-pill span.icon { font-size: 0.9rem; }
+
+    /* Detail panel */
+    .detail-panel {
+      background: rgba(255,255,255,0.96);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      padding: 1rem 1rem 1.1rem;
+      position: sticky;
+      top: 1rem;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    @media (max-width: 980px) {
+      .detail-panel {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    .detail-month-name {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--primary);
+    }
+
+    .detail-season-pill {
+      font-size: 0.75rem;
+      padding: 0.12rem 0.6rem;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(25,118,210,0.3);
+    }
+
+    .detail-tip {
+      margin: 0.4rem 0 0.6rem;
+      font-size: 0.86rem;
+      color: #455a64;
+    }
+
+    .ai-helper-box {
+      border-radius: 12px;
+      padding: 0.65rem 0.7rem;
+      background: linear-gradient(135deg, #e3f2fd, #fdf4ff);
+      border: 1px solid rgba(79, 70, 229, 0.25);
+      margin-bottom: 0.65rem;
+      display: flex;
+      gap: 0.55rem;
+      align-items: flex-start;
+      font-size: 0.8rem;
+    }
+
+    .ai-helper-icon { font-size: 1.4rem; }
+
+    .ai-helper-title {
+      font-weight: 600;
+      margin-bottom: 0.18rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .metrics-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-pill {
+      font-size: 0.75rem;
+      padding: 0.14rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: rgba(15, 23, 42, 0.02);
+    }
+
+    .detail-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 0.4rem;
+      margin-bottom: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #607d8b;
+    }
+
+    .detail-list {
+      list-style: none;
+      margin: 0 0 0.35rem;
+      padding-left: 0;
+      font-size: 0.82rem;
+    }
+
+    .detail-list li {
+      margin-bottom: 0.16rem;
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .detail-list li span.icon { width: 1.1rem; }
+
+    .detail-bars-block {
+      font-size: 0.78rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .bar-label { margin-bottom: 0.1rem; }
+
+    .bar {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.08);
+      overflow: hidden;
+      margin-bottom: 0.3rem;
+    }
+
+    .bar .fill {
+      height: 100%;
+      background: linear-gradient(90deg, #90caf9, #1565c0);
+    }
+
+    .hint {
+      font-size: 0.74rem;
+      color: #78909c;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1 id="titleText">Ladakh Ecological Calendar</h1>
+  <p id="subtitleText">
+    Month-by-month view of climate, snow, water, pasture and livelihoods for a high mountain valley in Ladakh.
+    Designed so it can be printed as a poster or used in village meetings.
+  </p>
+  <div class="year-label" id="yearLabelText">
+    Climate baseline: 2018–2024 · Data: Sentinel-2, CHIRPS & community knowledge
+  </div>
+  <div class="ai-tagline" id="aiTaglineText">
+    🔍 Includes a simple “AI helper” that turns indicators into easy advice for local use.
+  </div>
+
+  <div class="controls">
+    <button class="filter-btn" data-filter="field">
+      <span class="icon">🌱</span><span id="filterFieldText">Good for field work</span>
+    </button>
+    <button class="filter-btn" data-filter="grazing">
+      <span class="icon">🐑</span><span id="filterGrazingText">Good for grazing / fodder</span>
+    </button>
+    <button class="filter-btn" data-filter="agri">
+      <span class="icon">🌾</span><span id="filterAgriText">Key sowing / harvest</span>
+    </button>
+    <button class="filter-btn" data-filter="clear">
+      <span class="icon">✖️</span><span id="filterClearText">Show all months</span>
+    </button>
+  </div>
+
+  <div class="lang-switch">
+    <button class="lang-btn active" data-lang="en">🌐 English</button>
+    <button class="lang-btn" data-lang="hi">🇮🇳 हिन्दी</button>
+    <button class="lang-btn" data-lang="ur">اردو</button>
+  </div>
+</header>
+
+<div class="wrapper">
+  <div class="calendar-board">
+    <div class="hanger"></div>
+    <div class="board-paper">
+
+      <!-- LIVE WEATHER WIDGET -->
+      <div class="weather-box">
+        <a class="weatherwidget-io"
+           href="https://forecast7.com/en/34d2377d56/ladakh/"
+           data-label_1="LADAKH"
+           data-label_2="WEATHER"
+           data-theme="original">
+          LADAKH WEATHER
+        </a>
+      </div>
+
+      <!-- Calendar grid -->
+      <div class="months-grid" id="monthsGrid"></div>
+
+      <!-- Legend UNDER the calendar grid -->
+      <div class="legend">
+        <div class="legend-title">
+          <span>🗺️</span>
+          <span id="legendTitleText">Legend – how to read this calendar</span>
+        </div>
+
+        <div class="legend-row">
+          <div class="legend-pill"><span class="icon">❄️</span><span id="legendFrostHighText">High frost / very cold</span></div>
+          <div class="legend-pill"><span class="icon">🧊</span><span id="legendFrostSomeText">Some frost at night</span></div>
+          <div class="legend-pill"><span class="icon">🌤️</span><span id="legendFrostLowText">Little frost</span></div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-pill"><span class="icon">❄️</span><span id="legendSnowDeepText">Fields deep in snow</span></div>
+          <div class="legend-pill"><span class="icon">🌨️</span><span id="legendSnowPartialText">Snow on part of fields</span></div>
+          <div class="legend-pill"><span class="icon">🚫</span><span id="legendSnowNoneText">Fields snow-free</span></div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-pill"><span class="icon">🌿</span><span id="legendPasturePeakText">Pasture peak green</span></div>
+          <div class="legend-pill"><span class="icon">🌱</span><span id="legendPastureGrowingText">Pasture growing</span></div>
+          <div class="legend-pill"><span class="icon">🟤</span><span id="legendPasturePoorText">Pasture poor / brown</span></div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-pill"><span class="icon">🌊</span><span id="legendWaterHighText">Water high</span></div>
+          <div class="legend-pill"><span class="icon">💦</span><span id="legendWaterMedText">Water medium</span></div>
+          <div class="legend-pill"><span class="icon">💧</span><span id="legendWaterLowText">Water low</span></div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-pill"><span class="icon">✅</span><span id="legendFieldGoodText">Good month for field work</span></div>
+          <div class="legend-pill"><span class="icon">🌾</span><span id="legendSowingHarvestText">Key sowing / harvest month</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="detail-panel">
+    <h2 class="detail-month-name" id="detailMonthName">
+      Select a month
+    </h2>
+    <p class="detail-tip" id="detailTip">
+      Click any month in the calendar to see detailed guidance. You can translate the short advice into Ladakhi or Hindi
+      and use it in schools, village meetings, or printed posters.
+    </p>
+    <div class="ai-helper-box">
+      <div class="ai-helper-icon">🤖</div>
+      <div>
+        <div class="ai-helper-title" id="aiHelperTitle">
+          AI helper
+          <span style="font-size:0.7rem; padding:0.05rem 0.5rem; border-radius:999px; background:#eef2ff; border:1px solid rgba(79,70,229,0.3);">
+            rule-based summary
+          </span>
+        </div>
+        <div id="aiHelperText">
+          I’ll summarise key actions once you select a month.
+        </div>
+      </div>
+    </div>
+    <div id="detailContent"></div>
+    <p class="hint" id="hintText">
+      Tip: You can mark local festivals (e.g. Dosmoche in February, Hemis Tsechu in July, Ladakh Harvest Festival in September),
+      sowing dates, livestock movement, and school events directly on a printed version of this calendar with coloured stickers or pen.
+    </p>
+  </aside>
+</div>
+
+<!-- Weather widget script (must be AFTER the .weatherwidget-io element) -->
+<script>
+!function(d,s,id){
+  var js,fjs=d.getElementsByTagName(s)[0];
+  if(!d.getElementById(id)){
+    js=d.createElement(s);
+    js.id=id;
+    js.src='https://weatherwidget.io/js/widget.min.js';
+    fjs.parentNode.insertBefore(js,fjs);
+  }
+}(document,'script','weatherwidget-io-js');
+</script>
+
+<script>
+  // =========================
+  // I18N + fallback helper
+  // =========================
+  const i18n = {
+    en: {
+      title: "Ladakh Ecological Calendar",
+      subtitle: "Month-by-month view of climate, snow, water, pasture and livelihoods for a high mountain valley in Ladakh. Designed so it can be printed as a poster or used in village meetings.",
+      yearLabel: "Climate baseline: 2018–2024 · Data: Sentinel-2, CHIRPS & community knowledge",
+      aiTagline: "🔍 Includes a simple “AI helper” that turns indicators into easy advice for local use.",
+      filterField: "Good for field work",
+      filterGrazing: "Good for grazing / fodder",
+      filterAgri: "Key sowing / harvest",
+      filterClear: "Show all months",
+      legendTitle: "Legend – how to read this calendar",
+      legendFrostHigh: "High frost / very cold",
+      legendFrostSome: "Some frost at night",
+      legendFrostLow: "Little frost",
+      legendSnowDeep: "Fields deep in snow",
+      legendSnowPartial: "Snow on part of fields",
+      legendSnowNone: "Fields snow-free",
+      legendPasturePeak: "Pasture peak green",
+      legendPastureGrowing: "Pasture growing",
+      legendPasturePoor: "Pasture poor / brown",
+      legendWaterHigh: "Water high",
+      legendWaterMed: "Water medium",
+      legendWaterLow: "Water low",
+      legendFieldGood: "Good month for field work",
+      legendSowingHarvest: "Key sowing / harvest month",
+      selectMonth: "Select a month",
+      detailHint: "Click any month in the calendar to see detailed guidance. You can translate the short advice into Ladakhi or Hindi and use it in schools, village meetings, or printed posters.",
+      aiHelperTitle: "AI helper",
+      aiHelperStart: "I’ll summarise key actions once you select a month.",
+      hint: "Tip: You can mark local festivals (e.g. Dosmoche in February, Hemis Tsechu in July, Ladakh Harvest Festival in September), sowing dates, livestock movement, and school events directly on a printed version of this calendar with coloured stickers or pen.",
+      metricTemp: "Mean temperature",
+      metricRain: "Rain (CHIRPS)",
+      metricRantak: "Rantak",
+      metricIrrigation: "Irrigation",
+      metricLabour: "Labour",
+      metricMigration: "Migration",
+      labelRainRel: "Monthly CHIRPS rain (relative to wettest month)",
+      sectionConditions: "Conditions",
+      sectionWater: "Water & cryosphere",
+      sectionLivelihoods: "Livelihoods & agriculture",
+      sectionBiodiversity: "Biodiversity & wildlife",
+      sectionBuilt: "Built environment & culture",
+      labelFrost: "Frost",
+      labelSnowFields: "Snow on fields",
+      labelSnowSource: "Snow in source area",
+      labelPasture: "Pasture condition",
+      labelWater: "Water situation",
+      labelHazard: "Flood / landslide risk",
+      labelRantak: "Rantak (water mill)",
+      labelIrrigationRel: "Irrigation reliability",
+      labelIceStupa: "Ice stupa status",
+      labelSpringFlow: "Spring/stream flow",
+      labelMainCrop: "Main crop activity",
+      labelCropRisk: "Crop risk note",
+      labelLabourDemand: "Labour demand",
+      labelMigrationLevel: "Out-migration level",
+      labelMedicinal: "Medicinal plants",
+      labelWildlife: "Wildlife conflict risk",
+      labelHeating: "Heating demand",
+      labelRoofUse: "Roof use",
+      labelCulture: "Cultural events",
+      aiSeason: "Season",
+      aiNoteUnusual: "Note unusual weather, snow or water conditions on this calendar to support long-term climate memory.",
+      aiFieldsFallow: "Fields are mostly <strong>fallow</strong>; prioritise house repair and livestock care.",
+      aiSowing: "Good month to organise <strong>sowing teams</strong> and share irrigation turns fairly.",
+      aiHarvest: "Focus on <strong>harvest and safe storage</strong> of grain and fodder.",
+      aiWaterGood: "Water mills and irrigation can work well—plan shared use and maintenance.",
+      aiHazardHigh: "Avoid camping, grazing or new building close to steep streams or unstable slopes.",
+      aiMigrationHigh: "Migration is high; remaining villagers may need <strong>extra coordination</strong> for labour-intensive tasks."
+    },
+    hi: {
+      title: "लद्दाख पारिस्थितिक कैलेंडर",
+      subtitle: "लद्दाख की एक ऊँची घाटी के लिए मौसम, बर्फ, पानी, चारागाह और आजीविका का माहवार सार। इसे पोस्टर की तरह छापा जा सकता है या गाँव की बैठकों में दिखाया जा सकता है।",
+      yearLabel: "जलवायु आधार अवधि: 2018–2024 · डेटा: Sentinel-2, CHIRPS और समुदाय का ज्ञान",
+      aiTagline: "🔍 यह सरल ‘AI सहायक’ संकेतकों को स्थानीय लोगों के लिए आसान सलाह में बदल देता है।",
+      filterField: "खेती के काम के लिए अच्छा",
+      filterGrazing: "चराई / चारे के लिए अच्छा",
+      filterAgri: "मुख्य बुवाई / कटाई माह",
+      filterClear: "सभी महीने दिखाएँ",
+      legendTitle: "लेजनड – इस कैलेंडर को कैसे पढ़ें",
+      legendFrostHigh: "तेज़ पाला / बहुत ठंड",
+      legendFrostSome: "रात में हल्का पाला",
+      legendFrostLow: "बहुत कम पाला",
+      legendSnowDeep: "खेतों पर गहरी बर्फ",
+      legendSnowPartial: "कुछ हिस्सों पर बर्फ",
+      legendSnowNone: "खेतों पर बर्फ नहीं",
+      legendPasturePeak: "चारागाह सबसे हरा",
+      legendPastureGrowing: "चारागाह बढ़ रहा है",
+      legendPasturePoor: "चारागाह कमज़ोर / भूरा",
+      legendWaterHigh: "पानी अधिक",
+      legendWaterMed: "पानी मध्यम",
+      legendWaterLow: "पानी कम",
+      legendFieldGood: "खेती के लिए अच्छा महीना",
+      legendSowingHarvest: "मुख्य बुवाई / कटाई का महीना",
+      selectMonth: "किसी महीने को चुनें",
+      detailHint: "किसी भी महीने पर क्लिक करें और उस समय के लिए विस्तार से मार्गदर्शन देखें। इन छोटी सलाहों को लद्दाखी या हिन्दी में अनुवाद कर स्कूलों या पंचायत बैठकों में इस्तेमाल किया जा सकता है।",
+      aiHelperTitle: "AI सहायक",
+      aiHelperStart: "जैसे ही आप कोई महीना चुनेंगे, मैं मुख्य कामों का सार बता दूँगा।",
+      hint: "टिप: आप इस कैलेंडर के प्रिंट पर रंगीन स्टिकर या पेन से स्थानीय त्योहार (जैसे फरवरी में डोस्मोचे, जुलाई में हेमिस त्शेचू, सितंबर में हार्वेस्ट फेस्टिवल), बुवाई की तारीखें, पशु चराई और स्कूल कार्यक्रम चिह्नित कर सकते हैं।",
+      metricTemp: "औसत तापमान",
+      metricRain: "वर्षा (CHIRPS)",
+      metricRantak: "रांतक",
+      metricIrrigation: "सिंचाई",
+      metricLabour: "मजदूरी की ज़रूरत",
+      metricMigration: "प्रवास स्तर",
+      labelRainRel: "मासिक CHIRPS वर्षा (सबसे ज़्यादा बरसात वाले महीने के अनुपात में)",
+      sectionConditions: "परिस्थितियाँ",
+      sectionWater: "पानी और हिम",
+      sectionLivelihoods: "आजीविका और कृषि",
+      sectionBiodiversity: "जैव विविधता और वन्यजीव",
+      sectionBuilt: "निर्मित वातावरण और संस्कृति",
+      labelFrost: "पाला",
+      labelSnowFields: "खेतों पर बर्फ",
+      labelSnowSource: "ऊपरी जलग्रहण में बर्फ",
+      labelPasture: "चारागाह की स्थिति",
+      labelWater: "पानी की स्थिति",
+      labelHazard: "बाढ़ / भूस्खलन जोखिम",
+      labelRantak: "रांतक (पानी की चक्की)",
+      labelIrrigationRel: "सिंचाई की विश्वसनीयता",
+      labelIceStupa: "आइस स्तूपा की स्थिति",
+      labelSpringFlow: "चश्मे / नाले का बहाव",
+      labelMainCrop: "मुख्य फसली गतिविधि",
+      labelCropRisk: "फसल जोखिम टिप्पणी",
+      labelLabourDemand: "मजदूरी की मांग",
+      labelMigrationLevel: "बाहरी प्रवास स्तर",
+      labelMedicinal: "औषधीय पौधे",
+      labelWildlife: "वन्यजीव संघर्ष जोखिम",
+      labelHeating: "हीटिंग की ज़रूरत",
+      labelRoofUse: "छत का उपयोग",
+      labelCulture: "सांस्कृतिक कार्यक्रम",
+      aiSeason: "ऋतु",
+      aiNoteUnusual: "लंबी अवधि की जलवायु स्मृति के लिए, मौसम, बर्फ और पानी में दिखने वाले असामान्य पैटर्न इस कैलेंडर पर नोट करें।",
+      aiFieldsFallow: "अधिकतर खेत <strong>परती</strong> हैं; घर की मरम्मत और पशु देखभाल पर ध्यान दें।",
+      aiSowing: "यह <strong>बुवाई की टीम</strong> बनाने और सिंचाई की बारी न्यायपूर्ण बाँटने का अच्छा महीना है।",
+      aiHarvest: "अनाज और चारे की <strong>कटाई और सुरक्षित भंडारण</strong> पर ध्यान दें।",
+      aiWaterGood: "पानी की चक्की और सिंचाई अच्छी तरह चल सकती है—साझा उपयोग और रखरखाव की योजना बनाएं।",
+      aiHazardHigh: "<span style='color:#e53935;'>तेज़ धारा वाले नालों या अस्थिर ढलानों के पास डेरा, चराई या नया निर्माण करने से बचें।</span>",
+      aiMigrationHigh: "प्रवास अधिक है; गाँव में बचे लोग श्रम-प्रधान कामों के लिए <strong>अतिरिक्त समन्वय</strong> की योजना बनाएं।"
+    },
+    ur: {
+      title: "لداخ ماحولیاتی کیلنڈر",
+      subtitle: "لداخ کی ایک بلند وادی کے لیے موسم، برف، پانی، چراگاہ اور روزگار کی ماہ بہ ماہ جھلک۔ اسے پوسٹر کی شکل میں چھاپ کر گاؤں کی میٹنگوں میں استعمال کیا جا سکتا ہے۔",
+      yearLabel: "آب و ہوا کی بنیاد: 2018–2024 · ڈیٹا: Sentinel-2، CHIRPS اور مقامی معلومات",
+      aiTagline: "🔍 یہ سادہ ‘AI مددگار’ اشاروں کو مقامی لوگوں کے لیے آسان مشورے میں بدل دیتا ہے۔",
+      filterField: "کھیتی کے کام کے لیے اچھا",
+      filterGrazing: "چرائی / چارہ کے لیے اچھا",
+      filterAgri: "اہم بوائی / کٹائی مہینہ",
+      filterClear: "تمام مہینے دکھائیں",
+      legendTitle: "علامات – کیلنڈر کیسے پڑھیں",
+      legendFrostHigh: "سخت کہر / بہت سردی",
+      legendFrostSome: "رات کو ہلکی کہر",
+      legendFrostLow: "کم کہر",
+      legendSnowDeep: "کھیتوں پر گہری برف",
+      legendSnowPartial: "کچھ حصّوں پر برف",
+      legendSnowNone: "کھیتوں پر برف نہیں",
+      legendPasturePeak: "چارہ گاہ سب سے ہری",
+      legendPastureGrowing: "چارہ گاہ بڑھ رہی ہے",
+      legendPasturePoor: "چارہ گاہ کمزور / بھوری",
+      legendWaterHigh: "پانی زیادہ",
+      legendWaterMed: "پانی درمیانہ",
+      legendWaterLow: "پانی کم",
+      legendFieldGood: "کھیتی کے لیے اچھا مہینہ",
+      legendSowingHarvest: "اہم بوائی / کٹائی مہینہ",
+      selectMonth: "کوئی مہینہ منتخب کریں",
+      detailHint: "کسی مہینے پر کلک کریں اور اس وقت کے لیے تفصیلی رہنمائی دیکھیں۔ آپ ان مختصر مشوروں کو لداخی، ہندی یا اردو میں ترجمہ کر کے اسکولوں اور گاؤں کی میٹنگوں میں استعمال کر سکتے ہیں۔",
+      aiHelperTitle: "AI مددگار",
+      aiHelperStart: "جیسے ہی آپ کوئی مہینہ منتخب کریں گے، میں اہم کاموں کا خلاصہ بتاؤں گا۔",
+      hint: "ٹِپ: آپ اس کیلنڈر کے پرنٹ پر رنگین اسٹیکر یا قلم سے مقامی تہوار، بوائی کی تاریخیں، مویشیوں کی نقل و حرکت اور اسکول کے پروگرام نشان زد کر سکتے ہیں۔",
+      metricTemp: "اوسط درجہٴ حرارت",
+      metricRain: "بارش (CHIRPS)",
+      metricRantak: "رَانتک",
+      metricIrrigation: "آبپاشی",
+      metricLabour: "محنت کی ضرورت",
+      metricMigration: "ہجرت کی سطح",
+      labelRainRel: "ماہانہ CHIRPS بارش (سب سے زیادہ بارش والے مہینے کے مقابلے میں)",
+      sectionConditions: "حالات",
+      sectionWater: "پانی اور برف",
+      sectionLivelihoods: "روزگار اور زراعت",
+      sectionBiodiversity: "حیاتیاتی تنوع اور جنگلی حیات",
+      sectionBuilt: "بسا ہوا ماحول اور ثقافت",
+      labelFrost: "کہر",
+      labelSnowFields: "کھیتوں پر برف",
+      labelSnowSource: "بالائی علاقے میں برف",
+      labelPasture: "چراہ گاہ کی حالت",
+      labelWater: "پانی کی صورتِ حال",
+      labelHazard: "سیلاب / بھوسرکنے کا خطرہ",
+      labelRantak: "رَانتک (پانی کی چکی)",
+      labelIrrigationRel: "آبپاشی کی پائیداری",
+      labelIceStupa: "آئس اسٹوپا کی حالت",
+      labelSpringFlow: "چشمہ / نالے کا بہاؤ",
+      labelMainCrop: "اہم زرعی سرگرمی",
+      labelCropRisk: "فصل کا خطرہ نوٹ",
+      labelLabourDemand: "محنت کی مانگ",
+      labelMigrationLevel: "بیرونی ہجرت کی سطح",
+      labelMedicinal: "ادویاتی پودے",
+      labelWildlife: "جنگلی حیات کے تصادم کا خطرہ",
+      labelHeating: "گرمائش کی ضرورت",
+      labelRoofUse: "چھت کا استعمال",
+      labelCulture: "ثقافتی تقاریب",
+      aiSeason: "موسم",
+      aiNoteUnusual: "موسم، برف یا پانی میں غیر معمولی پیٹرن اس کیلنڈر پر نوٹ کریں تاکہ طویل مدتی موسمی یادداشت بن سکے۔",
+      aiFieldsFallow: "زیادہ تر کھیت <strong>بیکار</strong> ہیں؛ گھر کی مرمت اور مویشیوں کی دیکھ بھال کو ترجیح دیں۔",
+      aiSowing: "یہ <strong>بوائی کی ٹیمیں</strong> بنانے اور آبپاشی کی باری منصفانہ بانٹنے کا اچھا مہینہ ہے۔",
+      aiHarvest: "اناج اور چارے کی <strong>کٹائی اور محفوظ ذخیرہ</strong> پر توجہ دیں۔",
+      aiWaterGood: "پانی کی چکی اور آبپاشی اچھی طرح چل سکتی ہے—مشترکہ استعمال اور دیکھ بھال کی منصوبہ بندی کریں۔",
+      aiHazardHigh: "تیز دھاروں یا غیر مستحکم ڈھلوانوں کے قریب ڈیرہ، چرائی یا نئی تعمیر سے گریز کریں۔",
+      aiMigrationHigh: "ہجرت زیادہ ہے؛ گاؤں میں موجود لوگ محنت طلب کاموں کے لیے <strong>اضافی ہم آہنگی</strong> کی منصوبہ بندی کریں۔"
+    }
+  };
+
+  let currentLang = "en";
+
+  function t(key) {
+    const base = i18n["en"];
+    const langDict = i18n[currentLang] || {};
+    if (key in langDict) return langDict[key];
+    if (key in base) return base[key];
+    return key;
+  }
+
+  // =========================
+  // DATA (CHIRPS-only precip; valley data)
+  // =========================
+  const calendarData = [
+    {"month":1,"name":"January","frost":"High frost","snowValley":"Fields partly snow-covered","snowSource":"Source snow HIGH","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-16.00749432176959,"rainChirps":22.999170750736237,"snowValleyFrac":0.7136717485800348,"snowSourceFrac":0.9373675656916746,"RANTAK_class":"Low","IRRIGATION_reliability":"Low","ICE_STUPA_status":"Building","SPRING_STREAM_flow":"Low","LABOUR_demand":"Low","MIGRATION_level":"Medium","MAIN_CROP_activity":"Fallow / snow-covered","CROP_RISK_note":"Extreme cold; no cropping possible; protect stored food and water.","MEDICINAL_plants_status":"Dormant/Unavailable","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"High","ROOF_USE_status":"Snow load only / no use","CULTURAL_events":"Winter religious gatherings; sometimes around Losar (Tibetan New Year) depending on the lunar calendar","COMMUNITY_tip":"Deep winter. Focus on animal care, household repairs, and storing drinking water indoors. Avoid long-distance travel during storms."},
+    {"month":2,"name":"February","frost":"High frost","snowValley":"Fields partly snow-covered","snowSource":"Source snow HIGH","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-15.952024852046277,"rainChirps":25.049912364679076,"snowValleyFrac":0.9371777614317716,"snowSourceFrac":0.5220893639625693,"RANTAK_class":"Low","IRRIGATION_reliability":"Low","ICE_STUPA_status":"Building","SPRING_STREAM_flow":"Low","LABOUR_demand":"Low","MIGRATION_level":"Medium","MAIN_CROP_activity":"Fallow / snow-covered","CROP_RISK_note":"Very cold; roads and canals frozen; no sowing.","MEDICINAL_plants_status":"Dormant/Unavailable","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"High","ROOF_USE_status":"Snow load only / no use","CULTURAL_events":"Dosmoche (scapegoat festival) at Leh and monasteries; winter monastery festivals","COMMUNITY_tip":"Continue winter feeding of animals, keep water pipes and storage from freezing, and prepare tools for spring work."},
+    {"month":3,"name":"March","frost":"High frost","snowValley":"Fields partly snow-covered","snowSource":"Source snow HIGH","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-11.875100318839367,"rainChirps":42.85124708562522,"snowValleyFrac":0.38275862068965514,"snowSourceFrac":0.7368421052631579,"RANTAK_class":"Medium","IRRIGATION_reliability":"Medium","ICE_STUPA_status":"Melting","SPRING_STREAM_flow":"Low","LABOUR_demand":"Medium","MIGRATION_level":"Medium","MAIN_CROP_activity":"Field preparation","CROP_RISK_note":"Late frosts still possible; water often scarce at sowing time.","MEDICINAL_plants_status":"Growing/Not ready","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"High","ROOF_USE_status":"Snow load / some drying","CULTURAL_events":"Stok Guru Tsechu, Matho Nagrang at nearby monasteries (timing depends on lunar calendar)","COMMUNITY_tip":"Start repairing terraces and canals, plan sowing areas, and coordinate water turns. Watch for sudden meltwater and night frost."},
+    {"month":4,"name":"April","frost":"Some frost","snowValley":"Fields partly snow-covered","snowSource":"Source snow MEDIUM","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-6.752035797165173,"rainChirps":26.093345325809426,"snowValleyFrac":0.159271523178808,"snowSourceFrac":0.4157754010695187,"RANTAK_class":"Medium","IRRIGATION_reliability":"Medium","ICE_STUPA_status":"Melting","SPRING_STREAM_flow":"Medium","LABOUR_demand":"High","MIGRATION_level":"Low","MAIN_CROP_activity":"Sowing barley/peas/potato; vegetable nursery","CROP_RISK_note":"High frost risk for young seedlings; irrigation timing is critical.","MEDICINAL_plants_status":"Growing/Not ready","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"Medium","ROOF_USE_status":"Drying small items, dung cakes","CULTURAL_events":"Local spring rituals; some years Saka Dawa preparations begin later in the season","COMMUNITY_tip":"Key sowing month. Use ice-stupa or early meltwater carefully, sow hardy crops first, and protect seedlings from night frost."},
+    {"month":5,"name":"May","frost":"Some frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-1.224687477656174,"rainChirps":19.689288878114346,"snowValleyFrac":0.03115727002967425,"snowSourceFrac":0.08597883597883599,"RANTAK_class":"High","IRRIGATION_reliability":"High","ICE_STUPA_status":"None","SPRING_STREAM_flow":"High","LABOUR_demand":"High","MIGRATION_level":"Medium","MAIN_CROP_activity":"Crop establishment; vegetable sowing/transplanting","CROP_RISK_note":"Excess irrigation can damage tender crops; occasional cold nights.","MEDICINAL_plants_status":"Growing/Not ready","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"Medium","ROOF_USE_status":"Drying fodder and fuel on roofs","CULTURAL_events":"Local agricultural festivals; prayer days for good rainfall and snow","COMMUNITY_tip":"Crops are establishing. Share labour for weeding and the first big irrigations, and monitor water use so all fields receive enough."},
+    {"month":6,"name":"June","frost":"Little frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture growing","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":3.5348226142589414,"rainChirps":29.822979118383914,"snowValleyFrac":0.0,"snowSourceFrac":0.03260869565217391,"RANTAK_class":"High","IRRIGATION_reliability":"Medium","ICE_STUPA_status":"None","SPRING_STREAM_flow":"High","LABOUR_demand":"High","MIGRATION_level":"Medium","MAIN_CROP_activity":"Weeding and first major irrigations; vegetable care","CROP_RISK_note":"Strong sun and wind can dry soils quickly; local storms possible.","MEDICINAL_plants_status":"Growing/Not ready","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"Low","ROOF_USE_status":"Drying fodder/vegetables","CULTURAL_events":"Saka Dawa, Sindhu Darshan, Yuru Kabgyat (regional monastery festivals depending on lunar dates)","COMMUNITY_tip":"Peak work in fields. Organize communal irrigation (Dol-chu), weed on time, and keep an eye on sudden showers or hail."},
+    {"month":7,"name":"July","frost":"Little frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture growing","water":"Water MEDIUM","hazard":"Low flood / landslide risk","meanTemp":7.230176837139319,"rainChirps":25.29526184181948,"snowValleyFrac":0.0,"snowSourceFrac":0.0,"RANTAK_class":"High","IRRIGATION_reliability":"Medium","ICE_STUPA_status":"None","SPRING_STREAM_flow":"Medium","LABOUR_demand":"High","MIGRATION_level":"High","MAIN_CROP_activity":"Vegetable harvest begins; cereal crops in full growth","CROP_RISK_note":"Cloudburst and heavy-rain risk; hail can damage standing crops.","MEDICINAL_plants_status":"Ready_to_harvest","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"Low","ROOF_USE_status":"Roofs heavily used for drying","CULTURAL_events":"Hemis Tsechu and other summer monastery festivals in the region","COMMUNITY_tip":"Busy month in fields and off-farm work. Harvest early vegetables, dry produce on roofs, and avoid camping or building too close to streams."},
+    {"month":8,"name":"August","frost":"Little frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture peak green","water":"Water MEDIUM","hazard":"Low flood / landslide risk","meanTemp":7.378043842782454,"rainChirps":1.7167218628737906,"snowValleyFrac":0.0,"snowSourceFrac":0.0,"RANTAK_class":"Medium","IRRIGATION_reliability":"High","ICE_STUPA_status":"None","SPRING_STREAM_flow":"High","LABOUR_demand":"High","MIGRATION_level":"Medium","MAIN_CROP_activity":"Start of grain harvest; major vegetable harvest","CROP_RISK_note":"High flood and landslide risk during intense rains.","MEDICINAL_plants_status":"Ready_to_harvest","WILDLIFE_conflict_risk":"High","HEATING_demand":"Low","ROOF_USE_status":"Intense drying and storage on roofs","CULTURAL_events":"Local harvest prayers; Ladakh tourism season festivals in Leh","COMMUNITY_tip":"Begin grain harvest as soon as fields turn golden. Store grain and fodder on high, safe ground and be cautious of flash floods and muddy slopes."},
+    {"month":9,"name":"September","frost":"Little frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture peak green","water":"Water MEDIUM","hazard":"Low flood / landslide risk","meanTemp":4.56145010518325,"rainChirps":24.27856332166897,"snowValleyFrac":0.0,"snowSourceFrac":0.0,"RANTAK_class":"Medium","IRRIGATION_reliability":"Medium","ICE_STUPA_status":"None","SPRING_STREAM_flow":"Medium","LABOUR_demand":"High","MIGRATION_level":"Medium","MAIN_CROP_activity":"Main grain harvest and storage; fodder cutting","CROP_RISK_note":"Early frost possible at higher sites; late storms may spoil drying.","MEDICINAL_plants_status":"Ready_to_harvest","WILDLIFE_conflict_risk":"High","HEATING_demand":"Medium","ROOF_USE_status":"Roofs used for final drying and storage","CULTURAL_events":"Ladakh Harvest Festival period; autumn ceremonies in many villages","COMMUNITY_tip":"Finish harvesting and threshing. Stack fodder securely, protect stored grain from moisture, and prepare fields with manure where possible."},
+    {"month":10,"name":"October","frost":"Some frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture growing","water":"Water MEDIUM","hazard":"Low flood / landslide risk","meanTemp":-0.8066284575477599,"rainChirps":11.843042098016066,"snowValleyFrac":0.0,"snowSourceFrac":0.0,"RANTAK_class":"Low","IRRIGATION_reliability":"Low","ICE_STUPA_status":"None","SPRING_STREAM_flow":"Low","LABOUR_demand":"Medium","MIGRATION_level":"High","MAIN_CROP_activity":"Post-harvest processing; manure application","CROP_RISK_note":"Cold nights and early snow; no new sowing.","MEDICINAL_plants_status":"Dormant/Unavailable","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"Medium","ROOF_USE_status":"Storage use; occasional snow on roofs","CULTURAL_events":"Autumn/winter transition rituals; village meetings about winter preparations","COMMUNITY_tip":"Post-harvest month. Repair irrigation channels, strengthen houses and roofs, and plan livestock feed for the coming winter."},
+    {"month":11,"name":"November","frost":"High frost","snowValley":"Fields mostly snow-free","snowSource":"Source snow LOW","pasture":"Pasture poor / brown","water":"Water LOW","hazard":"Low flood / landslide risk","meanTemp":-6.05156200348031,"rainChirps":9.123140812803658,"snowValleyFrac":0.0,"snowSourceFrac":0.0,"RANTAK_class":"Low","IRRIGATION_reliability":"Low","ICE_STUPA_status":"Building","SPRING_STREAM_flow":"Low","LABOUR_demand":"Low","MIGRATION_level":"High","MAIN_CROP_activity":"Fallow; focus on livestock care and house maintenance","CROP_RISK_note":"Hard frosts; first significant snow events.","MEDICINAL_plants_status":"Dormant/Unavailable","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"High","ROOF_USE_status":"Snow load only / little use","CULTURAL_events":"Pre-winter religious events and household rituals","COMMUNITY_tip":"Prepare for deep winter: insulate houses, secure fodder and fuel, and start building or maintaining ice stupas where used."},
+    {"month":12,"name":"December","frost":"High frost","snowValley":"Fields partly snow-covered","snowSource":"Source snow HIGH","pasture":"Pasture poor / brown","water":"Water HIGH","hazard":"Low flood / landslide risk","meanTemp":-14.953153400785904,"rainChirps":11.752996045240646,"snowValleyFrac":0.15757575757575756,"snowSourceFrac":0.24509803921568626,"RANTAK_class":"Low","IRRIGATION_reliability":"Low","ICE_STUPA_status":"Building","SPRING_STREAM_flow":"Low","LABOUR_demand":"Low","MIGRATION_level":"High","MAIN_CROP_activity":"Fallow / snow-covered","CROP_RISK_note":"Extreme cold and snow; travel and outdoor work very limited.","MEDICINAL_plants_status":"Dormant/Unavailable","WILDLIFE_conflict_risk":"Medium","HEATING_demand":"High","ROOF_USE_status":"Snow load only / no use","CULTURAL_events":"Losar (Tibetan New Year) often falls around Dec–Jan; winter family and monastery festivals","COMMUNITY_tip":"Deep winter again. Prioritise animal shelters, water storage, and family/community support, and note unusual snow or thaw patterns for the calendar."}
+  ];
+
+  const monthsGrid = document.getElementById("monthsGrid");
+  const detailMonthName = document.getElementById("detailMonthName");
+  const detailTip = document.getElementById("detailTip");
+  const detailContent = document.getElementById("detailContent");
+  const aiHelperText = document.getElementById("aiHelperText");
+
+  const maxChirps = Math.max(...calendarData.map(m => m.rainChirps));
+
+  function getSeason(month) {
+    if ([12, 1, 2].includes(month))
+      return currentLang === "hi" ? "कड़ाकेदार सर्दी" :
+             currentLang === "ur" ? "سخت سردی" :
+             "Deep winter";
+    if ([3, 4].includes(month))
+      return currentLang === "hi" ? "वसंत की शुरुआत" :
+             currentLang === "ur" ? "بہار کی شروعات" :
+             "Early spring";
+    if ([5, 6].includes(month))
+      return currentLang === "hi" ? "फसल बढ़ने का समय" :
+             currentLang === "ur" ? "فصل بڑھنے کا وقت" :
+             "Growing season";
+    if ([7, 8].includes(month))
+      return currentLang === "hi" ? "गर्मी / चराई का चरम" :
+             currentLang === "ur" ? "گرمی / چرائی کا عروج" :
+             "Peak summer";
+    if ([9, 10].includes(month))
+      return currentLang === "hi" ? "कटाई का समय" :
+             currentLang === "ur" ? "کٹائی کا وقت" :
+             "Harvest season";
+    return currentLang === "hi" ? "सर्दी की शुरुआत" :
+           currentLang === "ur" ? "سردی کی شروعات" :
+           "Early winter";
+  }
+
+  function shortStatusIcon(type, value) {
+    if (type === "frost") {
+      if (value.includes("High")) return "❄️";
+      if (value.includes("Some")) return "🧊";
+      return "🌤️";
+    }
+    if (type === "snow") {
+      if (value.includes("mostly snow-covered")) return "❄️";
+      if (value.includes("partly")) return "🌨️";
+      return "🚫";
+    }
+    if (type === "pasture") {
+      if (value.includes("peak")) return "🌿";
+      if (value.includes("growing")) return "🌱";
+      return "🟤";
+    }
+    if (type === "water") {
+      if (value.includes("HIGH")) return "🌊";
+      if (value.includes("MEDIUM")) return "💦";
+      return "💧";
+    }
+    if (type === "hazard") {
+      if (value.includes("High")) return "⚠️";
+      return "✅";
+    }
+    return "•";
+  }
+
+  function classifyFieldWork(m) {
+    if (m.frost.includes("High") || m.snowValley.includes("snow-covered"))
+      return {
+        label: currentLang === "hi" ? "खेती के लिए कमज़ोर" :
+               currentLang === "ur" ? "کھیتی کے لیے کمزور" :
+               "Field work poor",
+        cls: "bad",
+        emoji: "🚫"
+      };
+    if (m.frost.includes("Some"))
+      return {
+        label: currentLang === "hi" ? "खेती मध्यम" :
+               currentLang === "ur" ? "کھیتی درمیانی" :
+               "Field work medium",
+        cls: "medium",
+        emoji: "🟡"
+      };
+    return {
+      label: currentLang === "hi" ? "खेती के लिए अच्छा" :
+             currentLang === "ur" ? "کھیتی کے لیے اچھا" :
+             "Field work good",
+      cls: "good",
+      emoji: "✅"
+    };
+  }
+
+  function classifyGrazing(m) {
+    if (m.pasture.includes("peak"))
+      return {
+        label: currentLang === "hi" ? "चराई बहुत अच्छी" :
+               currentLang === "ur" ? "چرائی بہت اچھی" :
+               "Grazing excellent",
+        cls: "good",
+        emoji: "🌿"
+      };
+    if (m.pasture.includes("growing"))
+      return {
+        label: currentLang === "hi" ? "चराई मध्यम" :
+               currentLang === "ur" ? "چرائی درمیانی" :
+               "Grazing moderate",
+        cls: "medium",
+        emoji: "🌱"
+      };
+    return {
+      label: currentLang === "hi" ? "चराई कमज़ोर" :
+             currentLang === "ur" ? "چرائی کمزور" :
+             "Grazing poor",
+      cls: "bad",
+      emoji: "🟤"
+    };
+  }
+
+  function classifyHazard(m) {
+    if (m.hazard.includes("High"))
+      return {
+        label: currentLang === "hi" ? "जोखिम अधिक" :
+               currentLang === "ur" ? "خطرہ زیادہ" :
+               "Hazard high",
+        cls: "bad",
+        emoji: "⚠️"
+      };
+    return {
+      label: currentLang === "hi" ? "जोखिम कम" :
+             currentLang === "ur" ? "خطرہ کم" :
+             "Hazard low",
+      cls: "good",
+      emoji: "🛡️"
+    };
+  }
+
+  function buildMonthCard(monthData) {
+    const card = document.createElement("div");
+    card.className = "month-page";
+    card.dataset.month = monthData.month;
+
+    const season = getSeason(monthData.month);
+    const fieldStatus = classifyFieldWork(monthData);
+    const grazeStatus = classifyGrazing(monthData);
+    const hazardStatus = classifyHazard(monthData);
+    const rainRel = maxChirps > 0 ? (monthData.rainChirps / maxChirps) * 100 : 0;
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "month-header-row";
+    headerRow.innerHTML = `
+      <div class="month-name">${monthData.name}</div>
+      <div class="season-tag">${season}</div>
+    `;
+    card.appendChild(headerRow);
+
+    const iconsRow = document.createElement("div");
+    iconsRow.className = "icons-row";
+    iconsRow.innerHTML = `
+      <span title="${monthData.frost}">${shortStatusIcon("frost", monthData.frost)}</span>
+      <span title="${monthData.snowValley}">${shortStatusIcon("snow", monthData.snowValley)}</span>
+      <span title="${monthData.pasture}">${shortStatusIcon("pasture", monthData.pasture)}</span>
+      <span title="${monthData.water}">${shortStatusIcon("water", monthData.water)}</span>
+      <span title="${monthData.hazard}">${shortStatusIcon("hazard", monthData.hazard)}</span>
+    `;
+    card.appendChild(iconsRow);
+
+    const summaryRow = document.createElement("div");
+    summaryRow.className = "summary-badges";
+    summaryRow.innerHTML = `
+      <div class="summary-pill ${fieldStatus.cls}">${fieldStatus.emoji} ${fieldStatus.label}</div>
+      <div class="summary-pill ${grazeStatus.cls}">${grazeStatus.emoji} ${grazeStatus.label}</div>
+      <div class="summary-pill ${hazardStatus.cls}">${hazardStatus.emoji} ${hazardStatus.label}</div>
+    `;
+    card.appendChild(summaryRow);
+
+    const shortLines = document.createElement("div");
+    shortLines.className = "short-lines";
+    shortLines.innerHTML = `
+      <div><span class="label-pill">🌡 ${t("metricTemp")}</span> ${monthData.meanTemp.toFixed(1)} °C</div>
+      <div><span class="label-pill">🌧 ${t("metricRain")}</span> ${monthData.rainChirps.toFixed(1)} mm</div>
+      <div><span class="label-pill">⚙ ${t("metricRantak")}</span> ${monthData.RANTAK_class}</div>
+      <div><span class="label-pill">👨‍🌾 ${t("metricLabour")}</span> ${monthData.LABOUR_demand}</div>
+    `;
+    card.appendChild(shortLines);
+
+    const miniRain = document.createElement("div");
+    miniRain.className = "mini-rain-bar";
+    miniRain.innerHTML = `
+      <div>${t("labelRainRel")}:</div>
+      <div class="bar"><div class="fill" style="width:${rainRel.toFixed(0)}%;"></div></div>
+    `;
+    card.appendChild(miniRain);
+
+    card.addEventListener("click", () => showMonthDetail(monthData));
+    return card;
+  }
+
+  function buildAiHelperText(m) {
+    const parts = [];
+    const season = getSeason(m.month);
+    parts.push(`${t("aiSeason")}: <strong>${season}</strong>.`);
+
+    const act = m.MAIN_CROP_activity.toLowerCase();
+    if (act.includes("sowing")) {
+      parts.push(t("aiSowing"));
+    } else if (act.includes("harvest")) {
+      parts.push(t("aiHarvest"));
+    } else if (act.includes("fallow")) {
+      parts.push(t("aiFieldsFallow"));
+    }
+
+    if (m.water.includes("HIGH") && m.RANTAK_class !== "Low") {
+      parts.push(t("aiWaterGood"));
+    }
+    if (m.hazard.includes("High")) {
+      parts.push(t("aiHazardHigh"));
+    }
+    if (m.MIGRATION_level === "High") {
+      parts.push(t("aiMigrationHigh"));
+    }
+
+    parts.push(t("aiNoteUnusual"));
+    return parts.join(" ");
+  }
+
+  function showMonthDetail(monthData) {
+    const season = getSeason(monthData.month);
+    detailMonthName.innerHTML = `
+      ${monthData.name}
+      <span class="detail-season-pill">${season}</span>
+    `;
+    detailTip.textContent = monthData.COMMUNITY_tip;
+    aiHelperText.innerHTML = buildAiHelperText(monthData);
+
+    const snowValleyPct = (monthData.snowValleyFrac != null)
+      ? (monthData.snowValleyFrac * 100).toFixed(0) + "%"
+      : "NA";
+    const snowSourcePct = (monthData.snowSourceFrac != null)
+      ? (monthData.snowSourceFrac * 100).toFixed(0) + "%"
+      : "NA";
+
+    const rainRel = maxChirps > 0 ? (monthData.rainChirps / maxChirps) * 100 : 0;
+
+    detailContent.innerHTML = `
+      <div class="metrics-row">
+        <div class="metric-pill">🌡 ${t("metricTemp")}: ${monthData.meanTemp.toFixed(1)} °C</div>
+        <div class="metric-pill">🌧 ${t("metricRain")}: ${monthData.rainChirps.toFixed(1)} mm</div>
+        <div class="metric-pill">⚙ ${t("metricRantak")}: ${monthData.RANTAK_class}</div>
+        <div class="metric-pill">🚰 ${t("metricIrrigation")}: ${monthData.IRRIGATION_reliability}</div>
+        <div class="metric-pill">🐄 ${t("metricLabour")}: ${monthData.LABOUR_demand}</div>
+        <div class="metric-pill">🧳 ${t("metricMigration")}: ${monthData.MIGRATION_level}</div>
+      </div>
+
+      <div class="detail-bars-block">
+        <div class="bar-label">${t("labelRainRel")}: ${monthData.rainChirps.toFixed(1)} mm</div>
+        <div class="bar"><div class="fill" style="width:${rainRel.toFixed(0)}%;"></div></div>
+      </div>
+
+      <div class="detail-bars-block">
+        <div class="bar-label">${t("labelSnowFields")}: ${snowValleyPct}</div>
+        <div class="bar"><div class="fill" style="width:${monthData.snowValleyFrac * 100}%;"></div></div>
+        <div class="bar-label">${t("labelSnowSource")}: ${snowSourcePct}</div>
+        <div class="bar"><div class="fill" style="width:${monthData.snowSourceFrac * 100}%;"></div></div>
+      </div>
+
+      <div class="detail-section-title">${t("sectionConditions")}</div>
+      <ul class="detail-list">
+        <li><span class="icon">❄</span><span><strong>${t("labelFrost")}:</strong> ${monthData.frost}</span></li>
+        <li><span class="icon">⛄</span><span><strong>${t("labelSnowFields")}:</strong> ${monthData.snowValley}</span></li>
+        <li><span class="icon">🏔</span><span><strong>${t("labelSnowSource")}:</strong> ${monthData.snowSource}</span></li>
+        <li><span class="icon">🐑</span><span><strong>${t("labelPasture")}:</strong> ${monthData.pasture}</span></li>
+        <li><span class="icon">💧</span><span><strong>${t("labelWater")}:</strong> ${monthData.water}</span></li>
+        <li><span class="icon">⚠️</span><span><strong>${t("labelHazard")}:</strong> ${monthData.hazard}</span></li>
+      </ul>
+
+      <div class="detail-section-title">${t("sectionWater")}</div>
+      <ul class="detail-list">
+        <li><span class="icon">⚙</span><span><strong>${t("labelRantak")}:</strong> ${monthData.RANTAK_class}</span></li>
+        <li><span class="icon">🚰</span><span><strong>${t("labelIrrigationRel")}:</strong> ${monthData.IRRIGATION_reliability}</span></li>
+        <li><span class="icon">❄</span><span><strong>${t("labelIceStupa")}:</strong> ${monthData.ICE_STUPA_status}</span></li>
+        <li><span class="icon">🌀</span><span><strong>${t("labelSpringFlow")}:</strong> ${monthData.SPRING_STREAM_flow}</span></li>
+      </ul>
+
+      <div class="detail-section-title">${t("sectionLivelihoods")}</div>
+      <ul class="detail-list">
+        <li><span class="icon">👨‍🌾</span><span><strong>${t("labelMainCrop")}:</strong> ${monthData.MAIN_CROP_activity}</span></li>
+        <li><span class="icon">🌾</span><span><strong>${t("labelCropRisk")}:</strong> ${monthData.CROP_RISK_note}</span></li>
+        <li><span class="icon">🧑‍🌾</span><span><strong>${t("labelLabourDemand")}:</strong> ${monthData.LABOUR_demand}</span></li>
+        <li><span class="icon">🧳</span><span><strong>${t("labelMigrationLevel")}:</strong> ${monthData.MIGRATION_level}</span></li>
+      </ul>
+
+      <div class="detail-section-title">${t("sectionBiodiversity")}</div>
+      <ul class="detail-list">
+        <li><span class="icon">🌿</span><span><strong>${t("labelMedicinal")}:</strong> ${monthData.MEDICINAL_plants_status}</span></li>
+        <li><span class="icon">🐾</span><span><strong>${t("labelWildlife")}:</strong> ${monthData.WILDLIFE_conflict_risk}</span></li>
+      </ul>
+
+      <div class="detail-section-title">${t("sectionBuilt")}</div>
+      <ul class="detail-list">
+        <li><span class="icon">🔥</span><span><strong>${t("labelHeating")}:</strong> ${monthData.HEATING_demand}</span></li>
+        <li><span class="icon">🏠</span><span><strong>${t("labelRoofUse")}:</strong> ${monthData.ROOF_USE_status}</span></li>
+        <li><span class="icon">🎉</span><span><strong>${t("labelCulture")}:</strong> ${monthData.CULTURAL_events}</span></li>
+      </ul>
+    `;
+  }
+
+  function renderMonthCards() {
+    monthsGrid.innerHTML = "";
+    calendarData.forEach(m => {
+      monthsGrid.appendChild(buildMonthCard(m));
+    });
+  }
+
+  // Build cards first time
+  renderMonthCards();
+
+  // Default month: April
+  const defaultMonth = calendarData.find(m => m.month === 4) || calendarData[0];
+  showMonthDetail(defaultMonth);
+
+  // Filters
+  const filterButtons = document.querySelectorAll(".filter-btn");
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+      filterButtons.forEach(b => b.classList.remove("active"));
+
+      if (filter === "clear") {
+        document.querySelectorAll(".month-page").forEach(card => {
+          card.style.opacity = "1";
+          card.style.filter = "none";
+        });
+        return;
+      }
+
+      btn.classList.add("active");
+
+      document.querySelectorAll(".month-page").forEach(card => {
+        const monthNumber = Number(card.dataset.month);
+        const data = calendarData.find(m => m.month === monthNumber);
+
+        let match = false;
+        const act = data.MAIN_CROP_activity.toLowerCase();
+
+        if (filter === "field") {
+          match = !data.frost.includes("High") &&
+                  data.snowValley.includes("snow-free");
+        } else if (filter === "grazing") {
+          match = data.pasture.includes("growing") ||
+                  data.pasture.includes("peak green");
+        } else if (filter === "agri") {
+          match = act.includes("sowing") || act.includes("harvest");
+        }
+
+        if (match) {
+          card.style.opacity = "1";
+          card.style.filter = "none";
+        } else {
+          card.style.opacity = "0.25";
+          card.style.filter = "grayscale(0.6)";
+        }
+      });
+    });
+  });
+
+  // Language change
+  function applyLanguage(lang) {
+    currentLang = lang;
+
+    document.getElementById("titleText").textContent = t("title");
+    document.getElementById("subtitleText").textContent = t("subtitle");
+    document.getElementById("yearLabelText").textContent = t("yearLabel");
+    document.getElementById("aiTaglineText").textContent = t("aiTagline");
+
+    document.getElementById("filterFieldText").textContent = t("filterField");
+    document.getElementById("filterGrazingText").textContent = t("filterGrazing");
+    document.getElementById("filterAgriText").textContent = t("filterAgri");
+    document.getElementById("filterClearText").textContent = t("filterClear");
+
+    document.getElementById("legendTitleText").textContent = t("legendTitle");
+    document.getElementById("legendFrostHighText").textContent = t("legendFrostHigh");
+    document.getElementById("legendFrostSomeText").textContent = t("legendFrostSome");
+    document.getElementById("legendFrostLowText").textContent = t("legendFrostLow");
+    document.getElementById("legendSnowDeepText").textContent = t("legendSnowDeep");
+    document.getElementById("legendSnowPartialText").textContent = t("legendSnowPartial");
+    document.getElementById("legendSnowNoneText").textContent = t("legendSnowNone");
+    document.getElementById("legendPasturePeakText").textContent = t("legendPasturePeak");
+    document.getElementById("legendPastureGrowingText").textContent = t("legendPastureGrowing");
+    document.getElementById("legendPasturePoorText").textContent = t("legendPasturePoor");
+    document.getElementById("legendWaterHighText").textContent = t("legendWaterHigh");
+    document.getElementById("legendWaterMedText").textContent = t("legendWaterMed");
+    document.getElementById("legendWaterLowText").textContent = t("legendWaterLow");
+    document.getElementById("legendFieldGoodText").textContent = t("legendFieldGood");
+    document.getElementById("legendSowingHarvestText").textContent = t("legendSowingHarvest");
+
+    document.getElementById("detailMonthName").textContent = t("selectMonth");
+    document.getElementById("detailTip").textContent = t("detailHint");
+    document.getElementById("aiHelperTitle").textContent = t("aiHelperTitle");
+    aiHelperText.textContent = t("aiHelperStart");
+    document.getElementById("hintText").textContent = t("hint");
+
+    // Re-render cards & reset detail panel to default month in new language
+    renderMonthCards();
+    showMonthDetail(defaultMonth);
+  }
+
+  const langButtons = document.querySelectorAll(".lang-btn");
+  langButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      langButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const lang = btn.dataset.lang;
+      applyLanguage(lang);
+    });
+  });
+
+  // Initial language
+  applyLanguage("en");
+</script>
+</body>
+</html>
